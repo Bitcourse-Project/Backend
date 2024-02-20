@@ -5,6 +5,12 @@ spring:
     password: 1234
     driver-class-name: com.mysql.cj.jdbc.Driver
 
+  kafka:
+    producer:
+      bootstrap-servers: 127.0.0.1:9092
+
+    bootstrap-servers: 127.0.0.1:9092
+
 management:
   endpoints:
     web:
