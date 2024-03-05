@@ -1,16 +1,15 @@
 package com.finance.bitcourse.common.kafka;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.finance.bitcourse.coin.entity.Candle;
+import com.finance.bitcourse.coin.repository.*;
 import com.finance.bitcourse.common.kafka.dto.ChartDto;
+import com.finance.bitcourse.common.kafka.dto.ChartResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
-
-import java.util.HashMap;
-import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -18,20 +17,53 @@ import java.util.Map;
 public class KafkaConsumerService {
 
     private final SimpMessagingTemplate template;
+    private final CandleRepository candleRepository;
+    private final CommonUpDivergenceRepository commonUpDivergenceRepository;
+    private final CommonDownDivergenceRepository commonDownDivergenceRepository;
+    private final HiddenUpDivergenceRepository hiddenUpDivergenceRepository;
+    private final HiddenDownDivergenceRepository hiddenDownDivergenceRepository;
 
     @KafkaListener(topics = "one-hour-chart", groupId = "my-group-id")
-    public void listenOneHourChart(ChartDto chartDto) throws JsonProcessingException {
+    public void listenOneHourChart(ChartDto chartDto) {
+        saveAndSendChart(chartDto, "oneHourChart", "one");
+    }
 
-        System.out.println(chartDto);
+    @KafkaListener(topics = "four-hour-chart", groupId = "my-group-id")
+    public void listenFourHourChart(ChartDto chartDto) {
+        saveAndSendChart(chartDto, "fourHourChart", "four");
+    }
 
-        Map<String, String> msg = new HashMap<>();
-        msg.put("trend_change_rate", chartDto.getTrendChangeRate());
-        msg.put("average_change_period", chartDto.getAverageChangePeriod());
-        msg.put("average_change_rate", chartDto.getAverageChangeRate());
+    private void saveAndSendChart(ChartDto chartDto, String topic, String candleType) {
+        Candle candle = existCandle(chartDto, candleType);
 
-        ObjectMapper mapper = new ObjectMapper();
+        switch (chartDto.getType()) {
+            case 0:
+                commonUpDivergenceRepository.save(chartDto.toCUD(candle));
+                break;
+            case 1:
+                commonDownDivergenceRepository.save(chartDto.toCDD(candle));
+                break;
+            case 2:
+                hiddenUpDivergenceRepository.save(chartDto.toHUD(candle));
+                break;
+            case 3:
+                hiddenDownDivergenceRepository.save(chartDto.toHDD(candle));
+                break;
+            default:
+                break;
+        }
 
-        template.convertAndSend("/topic/my-group-id", mapper.writeValueAsString(msg));
+        template.convertAndSend("/chart/" + topic, ResponseEntity
+                .ok()
+                .body(ChartResponse.of(chartDto)));
+    }
 
+    private Candle existCandle(ChartDto chartDto, String candleType) {
+        return candleRepository.findCandleByTime(chartDto.getTime())
+                .orElseGet(() -> candleRepository.save(Candle.builder()
+                        .type(candleType)
+                        .time(chartDto.getTime())
+                        .build()));
     }
 }
+

@@ -12,14 +12,16 @@ public class StompConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/ws")
+        registry.addEndpoint("/coin")
+                .setAllowedOrigins("*")
+                .withSockJS();
+        registry
+                .addEndpoint("/coin")
                 .setAllowedOrigins("*");
-                //.withSockJS();
     }
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
-        //registry.enableSimpleBroker("/topic");
-        registry.setApplicationDestinationPrefixes("/kafka");
+        registry.enableSimpleBroker("/chart");
     }
 }

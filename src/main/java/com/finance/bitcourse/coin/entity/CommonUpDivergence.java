@@ -6,9 +6,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
-import java.util.List;
-
 @Entity
 @NoArgsConstructor
 @AllArgsConstructor
@@ -26,7 +23,7 @@ public class CommonUpDivergence {
 
     private Double averageChangeRate;
 
-    @OneToMany(mappedBy = "commonUpDivergence")
-    private List<Candle> candles = new ArrayList<>();
+    @ManyToOne
+    private Candle candles;
 
 }
