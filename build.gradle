@@ -33,6 +33,7 @@ dependencies {
     implementation 'io.micrometer:micrometer-registry-prometheus'
     implementation 'org.springframework.boot:spring-boot-starter-aop'
     implementation("com.google.guava:guava:33.0.0-jre")
+    implementation 'org.springframework.kafka:spring-kafka:'
 }
 
 tasks.named('test') {
