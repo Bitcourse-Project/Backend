@@ -10,11 +10,11 @@ spring:
     hibernate:
       ddl-auto: create
 
-  kafka:
-    producer:
-      bootstrap-servers: 127.0.0.1:9092
+    kafka:
+      producer:
+        bootstrap-servers: 127.0.0.1:9092
 
-    bootstrap-servers: 127.0.0.1:9092
+      bootstrap-servers: 127.0.0.1:9092
 
 management:
   endpoints:
@@ -24,3 +24,7 @@ management:
   metrics:
     tags:
       application: ${spring.application.name}
+
+jwt:
+  secret: b3c63a3b79900b5dc53a0013a81fe1309eb0aa056900020476558e5bc36c52ed
+  expiration_time: 86400000  # 1일
